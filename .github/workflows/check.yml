@@ -70,7 +70,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: true
 
@@ -89,15 +89,9 @@ jobs:
           echo "latest_modemversion=$latest_modem" >> $GITHUB_ENV
           echo "need_update=$need_update" >> $GITHUB_ENV
 
-      - name: Set up Node.js
-        if: env.need_update == 1
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'latest'
-
       - name: Set up Python 3
         if: env.need_update == 1
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.x'
 
@@ -105,30 +99,46 @@ jobs:
         if: env.need_update == 1
         run: |
           sudo apt-get update
-          sudo apt-get install -y liblz4-tool zip android-sdk-libsparse-utils f2fs-tools
-          sudo wget -O /usr/bin/samfirm https://github.com/DavidArsene/samfirm.js/releases/download/v0.3.0/samfirm.js && sudo chmod +x /usr/bin/samfirm
+          sudo apt-get install -y liblz4-tool zip unzip android-sdk-libsparse-utils f2fs-tools
+          pip3 install git+https://github.com/ananjaser1211/samloader.git
 
       - name: Fetch firmware
         if: env.need_update == 1
         run: |
           if [[ "${{ matrix.model }}" == "SM-A5460" ]]; then
-              imei="R5CW71BXYRV"
+              device_id_arg="-s"
+              device_id="R5CW71BXYRV"
           elif [[ "${{ matrix.model }}" == "SM-A546B" ]]; then
-              imei="350756481234568"
+              device_id_arg="-i"
+              device_id="350756481234568"
           elif [[ "${{ matrix.model }}" == "SM-A546U" ]]; then
-              imei="356044291234563"
+              device_id_arg="-i"
+              device_id="356044291234563"
           elif [[ "${{ matrix.model }}" == "SM-A546U1" ]]; then
-              imei="356642731234562"
+              device_id_arg="-i"
+              device_id="356642731234562"
           elif [[ "${{ matrix.model }}" == "SM-A546W" ]]; then
-              imei="351617731234569"
+              device_id_arg="-i"
+              device_id="351617731234569"
           elif [[ "${{ matrix.model }}" == "SM-A546V" ]]; then
-              imei="351783151234560"
+              device_id_arg="-i"
+              device_id="351783151234560"
           elif [[ "${{ matrix.model }}" == "SM-A546S" ]]; then
-              imei="351992291234568"
+              device_id_arg="-i"
+              device_id="351992291234568"
           else
-              imei="350090711234564"
+              device_id_arg="-i"
+              device_id="350090711234564"
           fi
-          samfirm -m ${{ matrix.model }} -r ${{ matrix.csc }} -i $imei
+          samloader \
+            -m ${{ matrix.model }} \
+            -r ${{ matrix.csc }} \
+            "$device_id_arg" "$device_id" \
+            download \
+            -O .
+          fwzip=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
+          unzip "$fwzip"
+          rm -f "$fwzip"
 
       - name: Get path of files
         if: env.need_update == 1
