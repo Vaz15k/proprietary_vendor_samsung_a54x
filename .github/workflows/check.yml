@@ -152,12 +152,12 @@ jobs:
       - name: Check downloaded firmware version
         if: env.need_update == 1
         run: |
-          version_short=`echo ${{ env.ap_tar }} | cut -d'_' -f3`
-          version_csc=`echo ${{ env.csc_tar }} | cut -d'_' -f4`
-          version_modem=`echo ${{ env.cp_tar }} | cut -d'_' -f3`
-          [[ $version_short == ${{ env.latest_shortversion }} ]]
-          [[ $version_csc == ${{ env.latest_cscversion }} ]]
-          [[ $version_modem == ${{ env.latest_modemversion }} ]]
+          version_short=$(basename "${{ env.ap_tar }}" | cut -d'_' -f3)
+          version_csc=$(basename "${{ env.csc_tar }}" | cut -d'_' -f3)
+          version_modem=$(basename "${{ env.cp_tar }}" | cut -d'_' -f2)
+          [[ "$version_short" == "${{ env.latest_shortversion }}" ]]
+          [[ "$version_csc" == "${{ env.latest_cscversion }}" ]]
+          [[ "$version_modem" == "${{ env.latest_modemversion }}" ]]
           echo PDA version: $version_short > versions.txt
           echo CSC version: $version_csc >> versions.txt
           echo Modem version: $version_modem >> versions.txt
